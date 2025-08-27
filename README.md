@@ -70,3 +70,82 @@ Advantages of Request–Response:
 
     OrderPlaced triggers inventory updates, payment processing, and email notifications as separate workflows.
     Each component scales independently during high traffic (e.g., Black Friday).
+
+
+DAY-2
+
+1. What is the Publish-Subscribe Model in Kafka?
+
+The publish-subscribe model (or pub-sub) in Kafka is a messaging pattern where:
+
+    - Producers (publishers) send messages to Kafka topics.
+
+    - Consumers (subscribers) read messages from those topics.
+
+In Kafka:
+Topics are like channels or subjects where data is published.
+Multiple consumers can subscribe to the same topic, and they can be part of different consumer groups depending on how you want message distribution.
+Messages are not deleted after consumption (until retention limit) — so other consumers can still read them.
+You can have many independent consumers, each reading the same data at their own pace.
+
+2. How Does Kafka Ensure Message Durability?
+
+Kafka ensures durability in several ways:
+
+    1. Disk Persistence
+    - Messages are written to disk before acknowledging the producer (write-ahead log).
+    - Kafka persists messages in segments, not in memory.
+
+    2. Replication
+    - Each partition can have replicas across multiple brokers (controlled by replication factor).
+    - If one broker crashes, another broker (replica) takes over.
+
+    3. Acknowledgment Settings
+    - Producers can specify acks=all, meaning the message is only considered "written" once all in-sync replicas acknowledge it.
+
+    4. Configurable Retention
+    - Messages are retained for a set period (retention.ms) or until the log reaches a certain size (retention.bytes).
+
+3. What is the Role of a Kafka Topic and Partition?
+
+Topic- A topic is a category or feed name to which messages are published.
+Think of it like a table or folder for messages.
+
+Partition- A topic is split into partitions for scalability and parallelism.
+Each partition is:
+- Ordered (messages in a partition have a strict order).
+- Individually persisted and replicated.
+- Read independently by consumers in a group.
+
+Why It Matters:
+More partitions = better throughput, scalability, and parallelism.
+Partitioning allows multiple consumers to read in parallel.
+
+4. What Happens if a Consumer Fails While Processing a Message?
+Scenario:
+A consumer reads a message but crashes before fully processing it or committing the offset.
+
+Kafka Behavior:
+- Kafka tracks consumer offsets (i.e., how far the consumer has read).
+- If the consumer crashes before committing the offset, it will re-read the message on restart (possible duplicate).
+- If the offset is committed after processing, the message is considered consumed.
+
+Solutions:
+
+- At-least-once delivery is default (message may be reprocessed).
+- For exactly-once, you need Kafka Streams or transactional producers/consumers.
+- Use manual offset control for fine-grained handling.
+
+5. Compare Kafka with another messaging system like RabbitMQ or MQTT.
+
+
+| **Feature**       | **Kafka**                                  | **RabbitMQ**                             |**MQTT**                                   |
+|-------------------|---------------------------------------------|-------------------------------------------|---------------------------------------------|
+| **Type**          | Distributed log / stream processing         | Message broker (AMQP)                     | Lightweight publish-subscribe (IoT)         |
+| **Durability**    | Very high (disk + replication)              | Good (persistent queues)                  | Low (in-memory or persistent options)        |
+| **Ordering**      | Per partition                               | Per queue                                 | Not guaranteed                               |
+| **Throughput**    | Extremely high (millions/sec)               | Lower than Kafka                          | Optimized for low-bandwidth networks         |
+| **Latency**       | Low                                         | Low–medium                                | Ultra low                                    |
+| **Use Case Fit**  | Big data, logs, real-time analytics         | Task queues, transactional workflows      | IoT, mobile, sensor networks                 |
+| **Protocol**      | TCP-based (custom Kafka protocol)           | AMQP                                      | MQTT (lightweight TCP/IP)                   |
+| **Consumer Model**| Pull-based                                  | Push-based                                | Push-based                                   |
